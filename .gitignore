@@ -40,6 +40,7 @@ htmlcov/
 
 # Artifacts & Output Cache
 artifacts/
+extracted_stitch/
 *.log
 
 # Large Pretrained Model Weights (Instructions in README)

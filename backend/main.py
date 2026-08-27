@@ -46,6 +46,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 # Enable CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
@@ -55,18 +58,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount frontend directory for static serving
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
 # Include API endpoints
 app.include_router(router)
 
 
 @app.get("/", summary="Root index")
 async def root():
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
     return {
         "engine": settings.api_title,
         "version": settings.api_version,
         "docs_url": "/docs",
         "health_url": f"{settings.api_prefix}/health",
     }
+
 
 
 if __name__ == "__main__":

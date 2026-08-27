@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>DepthWizard — Tactical GIS Visualizer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#141559",
+                    "on-error": "#690005",
+                    "on-tertiary": "#1d2a6d",
+                    "on-surface-variant": "#bcc9c7",
+                    "on-secondary-fixed-variant": "#1d487a",
+                    "secondary": "#a5c8ff",
+                    "on-tertiary-fixed-variant": "#354185",
+                    "inverse-primary": "#006a63",
+                    "primary-fixed-dim": "#69d8cd",
+                    "on-primary": "#003733",
+                    "tertiary-fixed": "#dee0ff",
+                    "tertiary-fixed-dim": "#bbc3ff",
+                    "secondary-container": "#204a7c",
+                    "on-background": "#e1e0ff",
+                    "surface-container-high": "#1f2164",
+                    "tertiary": "#bbc3ff",
+                    "secondary-fixed-dim": "#a5c8ff",
+                    "on-tertiary-fixed": "#031158",
+                    "on-secondary-fixed": "#001c3a",
+                    "on-error-container": "#ffdad6",
+                    "steel-blue": "#2F578A",
+                    "inverse-on-surface": "#26286b",
+                    "deep-navy": "#121358",
+                    "surface-tint": "#69d8cd",
+                    "on-primary-fixed": "#00201d",
+                    "tertiary-container": "#8c98e1",
+                    "surface-container-highest": "#2a2d6f",
+                    "surface-dim": "#05034f",
+                    "on-surface": "#e1e0ff",
+                    "surface-bright": "#2f3174",
+                    "error": "#ffb4ab",
+                    "secondary-fixed": "#d4e3ff",
+                    "surface": "#05034f",
+                    "outline-variant": "#3d4947",
+                    "on-primary-container": "#003b37",
+                    "inverse-surface": "#e1e0ff",
+                    "on-tertiary-container": "#222e71",
+                    "teal-accent": "#36ADA3",
+                    "surface-variant": "#2a2d6f",
+                    "background": "#05034f",
+                    "primary-fixed": "#86f5ea",
+                    "error-container": "#93000a",
+                    "outline": "#869391",
+                    "on-secondary-container": "#95baf3",
+                    "primary-container": "#36ada3",
+                    "on-primary-fixed-variant": "#00504b",
+                    "surface-container-low": "#0f1056",
+                    "surface-container-lowest": "#020045",
+                    "primary": "#69d8cd",
+                    "on-secondary": "#00315e",
+                    "royal-blue": "#232F72"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "panel-gap": "8px",
+                    "gutter": "12px",
+                    "container-padding": "16px",
+                    "unit": "4px",
+                    "safe-margin": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Oswald"],
+                    "headline-lg": ["Oswald"],
+                    "headline-lg-mobile": ["Oswald"],
+                    "label-caps": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "data-mono": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-md": ["32px", { "lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                    "headline-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                    "headline-lg-mobile": ["40px", { "lineHeight": "1.1", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                    "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                    "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                    "data-mono": ["13px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }]
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .symbol-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-teal {
+            box-shadow: 0 0 15px rgba(54, 173, 163, 0.15);
+        }
+        .hover-glow-teal:hover {
+            box-shadow: 0 0 20px rgba(54, 173, 163, 0.3);
+        }
+        .scanlines {
+            position: relative;
+        }
+        .scanlines::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 19, 88, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body class="bg-deep-navy text-on-surface font-body-md min-h-screen flex flex-col overflow-x-hidden scanlines">
+
+<!-- TopNavBar -->
+<header class="bg-royal-blue/70 backdrop-blur-xl border-b border-steel-blue fixed top-0 left-0 w-full h-16 flex justify-between items-center px-safe-margin z-50">
+    <div class="font-headline-md text-headline-md font-bold uppercase text-teal-accent tracking-tighter flex items-center gap-3">
+        <span class="material-symbols-outlined text-2xl text-teal-accent">radar</span>
+        DepthWizard
+    </div>
+    <div class="flex gap-3 items-center">
+        <span id="hudStateBadge" class="hidden font-label-caps text-xs text-teal-accent bg-royal-blue px-3 py-1 border border-steel-blue uppercase">STATE_A</span>
+        <span id="hudRequestId" class="hidden font-data-mono text-xs text-on-surface-variant">REQ-ID</span>
+        <span id="engineStatusBadge" class="font-label-caps text-xs text-on-surface-variant bg-royal-blue px-3 py-1 border border-steel-blue uppercase flex items-center gap-1.5">
+            <span id="statusIndicatorDot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            <span id="statusText">CONNECTING...</span>
+        </span>
+        <button class="text-on-surface-variant hover:text-teal-accent transition-colors">
+            <span class="material-symbols-outlined">settings</span>
+        </button>
+    </div>
+</header>
+
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full pt-24 min-h-screen p-safe-margin flex flex-col gap-panel-gap max-w-6xl mx-auto space-y-6">
+    
+    <!-- Service Status Banner (Shown if backend offline) -->
+    <div id="serviceAlertBanner" class="hidden bg-amber-950/40 border border-amber-500/60 p-4 text-xs font-data-mono text-amber-300 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-lg text-amber-400 shrink-0">warning</span>
+            <span id="serviceAlertText">Backend service is currently unreachable at localhost:8000. Please start the FastAPI backend.</span>
+        </div>
+        <button id="retryHealthBtn" class="px-3 py-1 bg-amber-500/20 border border-amber-400 text-amber-300 hover:bg-amber-500/40 transition-colors uppercase font-label-caps">Retry Connection</button>
+    </div>
+
+    <!-- Header Section -->
+    <header class="mb-2 w-full">
+        <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-teal-accent uppercase mb-1">Tactical Image Ingestion</h1>
+        <p class="font-data-mono text-xs text-on-surface-variant uppercase">Single-image depth estimation & metric geometry inference terminal</p>
+    </header>
+
+    <!-- Data Ingestion Terminal / Dropzone -->
+    <div class="w-full">
+        <div class="bg-royal-blue/70 backdrop-blur-xl border border-steel-blue p-container-padding flex flex-col gap-6 relative overflow-hidden">
+            <h2 class="font-label-caps text-label-caps text-teal-accent uppercase border-b border-steel-blue pb-2 flex justify-between">
+                <span>Data Ingestion Terminal</span>
+                <span id="processEndpointLabel" class="text-on-surface-variant">POST /api/v1/depth/process</span>
+            </h2>
+
+            <!-- Interactive Dropzone -->
+            <div id="dropzone" class="bg-deep-navy/60 border-2 border-dashed border-steel-blue p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-teal-accent/80 hover:bg-royal-blue/40 transition-all text-center">
+                <input type="file" id="fileInput" accept="image/jpeg,image/png,image/tiff,image/geotiff,image/webp" class="hidden">
+                <div class="w-16 h-16 bg-royal-blue border border-steel-blue flex items-center justify-center text-teal-accent mb-1">
+                    <span class="material-symbols-outlined text-3xl">cloud_upload</span>
+                </div>
+                <div>
+                    <h3 class="font-headline-md text-xl uppercase text-teal-accent m-0">Drop Aerial Image Here or Click to Select</h3>
+                    <p class="font-data-mono text-xs text-on-surface-variant uppercase mt-1">Supported formats: JPEG (.jpg, .jpeg), PNG (.png), TIFF (.tif, .tiff), GeoTIFF, WebP (.webp)</p>
+                </div>
+            </div>
+
+            <!-- Image Preview Box -->
+            <div id="previewContainer" class="hidden bg-deep-navy/80 border border-steel-blue p-4 flex flex-col md:flex-row items-center gap-4">
+                <div class="w-24 h-24 bg-royal-blue border border-steel-blue overflow-hidden flex items-center justify-center shrink-0">
+                    <img id="imagePreview" src="" alt="Source preview" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-headline-md text-lg text-on-surface uppercase mb-1" id="fileNameDisplay">Selected Image</h4>
+                    <p id="fileStatusText" class="font-data-mono text-xs text-teal-accent uppercase">Ready for backend model execution</p>
+                </div>
+                <button id="clearFileBtn" class="text-xs font-label-caps text-on-surface-variant hover:text-error uppercase border border-steel-blue px-3 py-1 hover:border-error transition-colors">Clear File</button>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-steel-blue pt-4">
+                <button id="processBtn" disabled class="w-full sm:w-auto bg-teal-accent text-deep-navy font-label-caps text-label-caps uppercase py-3 px-8 hover:bg-transparent hover:text-teal-accent border border-teal-accent transition-colors flex items-center justify-center gap-2 hover-glow-teal shadow-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                    Engage Processing Pipeline
+                </button>
+
+                <!-- In-flight Loader with Live Timer -->
+                <div id="loadingIndicator" class="hidden flex items-center gap-3 font-data-mono text-xs text-teal-accent">
+                    <span class="material-symbols-outlined animate-spin text-xl text-teal-accent">sync</span>
+                    <span id="loadingTimerText" class="animate-pulse">EXECUTING DEPTHANYTHING V2 & GEOMETRY ENGINE... (0s)</span>
+                </div>
+            </div>
+
+            <!-- Error / Validation Banner -->
+            <div id="errorContainer" class="hidden bg-error-container/30 border border-error p-4 text-xs font-data-mono text-error flex items-start gap-3">
+                <span class="material-symbols-outlined text-lg shrink-0">error</span>
+                <div class="flex-1">
+                    <div id="errorTitle" class="font-bold uppercase mb-0.5">Pipeline Execution Failed</div>
+                    <span id="errorMessage">An error occurred while processing the request.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Processing Results Panel (Hidden until processed) -->
+    <div id="resultsPanel" class="hidden w-full space-y-6">
+
+        <!-- Visual Previews Comparison View -->
+        <div class="bg-royal-blue/70 backdrop-blur-xl border border-steel-blue p-container-padding flex flex-col gap-4">
+            <h2 class="font-label-caps text-label-caps text-teal-accent uppercase border-b border-steel-blue pb-2 flex justify-between">
+                <span>Visual Depth Representation</span>
+                <span id="previewStateLabel" class="text-on-surface-variant">STATE_A OUTPUT</span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Source Image Card -->
+                <div class="bg-deep-navy/80 border border-steel-blue p-4 flex flex-col gap-3">
+                    <div class="flex justify-between items-center border-b border-steel-blue/50 pb-2">
+                        <span class="font-headline-md text-base text-on-surface uppercase">Input Aerial Raster</span>
+                        <span id="inputImageFormat" class="font-label-caps text-xs text-on-surface-variant">SOURCE</span>
+                    </div>
+                    <div class="w-full h-72 bg-deep-navy border border-steel-blue flex items-center justify-center overflow-hidden">
+                        <img id="resultsInputPreview" src="" alt="Input Aerial Image" class="max-w-full max-h-full object-contain">
+                    </div>
+                </div>
+
+                <!-- Depth Colormap Card -->
+                <div class="bg-deep-navy/80 border border-steel-blue p-4 flex flex-col gap-3">
+                    <div class="flex justify-between items-center border-b border-steel-blue/50 pb-2">
+                        <span class="font-headline-md text-base text-teal-accent uppercase">Depth Colormap Rendering</span>
+                        <span id="depthMapTypeBadge" class="font-label-caps text-xs text-teal-accent border border-steel-blue px-2 py-0.5 bg-royal-blue">TURBO COLORMAP</span>
+                    </div>
+                    <div class="w-full h-72 bg-deep-navy border border-steel-blue flex items-center justify-center overflow-hidden relative">
+                        <img id="resultsDepthPreview" src="" alt="Depth Colormap Rendering" class="max-w-full max-h-full object-contain">
+                        <div id="noDepthVisualFallback" class="hidden text-center text-on-surface-variant font-data-mono text-xs p-4">
+                            No visual colormap rendering available.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telemetry & Diagnostic Metrics HUD -->
+        <div class="bg-royal-blue/70 backdrop-blur-xl border border-steel-blue p-container-padding flex flex-col gap-4">
+            <h2 class="font-label-caps text-label-caps text-teal-accent uppercase border-b border-steel-blue pb-2 flex justify-between">
+                <span>Pipeline Telemetry & Diagnostics</span>
+                <span class="text-on-surface-variant">METRICS & LATENCY</span>
+            </h2>
+
+            <!-- Metrics Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-deep-navy/70 border border-steel-blue p-3 flex flex-col gap-1">
+                    <span class="font-label-caps text-[10px] text-on-surface-variant uppercase">Pipeline State</span>
+                    <span id="metricState" class="font-headline-md text-xl text-teal-accent uppercase">STATE_A</span>
+                </div>
+                <div class="bg-deep-navy/70 border border-steel-blue p-3 flex flex-col gap-1">
+                    <span class="font-label-caps text-[10px] text-on-surface-variant uppercase">Model Engine</span>
+                    <span id="metricModel" class="font-data-mono text-sm text-on-surface truncate">DepthAnything V2</span>
+                </div>
+                <div class="bg-deep-navy/70 border border-steel-blue p-3 flex flex-col gap-1">
+                    <span class="font-label-caps text-[10px] text-on-surface-variant uppercase">Hardware Target</span>
+                    <span id="metricDevice" class="font-data-mono text-sm text-teal-accent uppercase">CPU</span>
+                </div>
+                <div class="bg-deep-navy/70 border border-steel-blue p-3 flex flex-col gap-1">
+                    <span class="font-label-caps text-[10px] text-on-surface-variant uppercase">Total Execution Latency</span>
+                    <span id="metricTotalTime" class="font-data-mono text-sm text-teal-accent font-bold">0.0 ms</span>
+                </div>
+            </div>
+
+            <!-- Sub-latency Timing Metrics Breakdown -->
+            <div class="border-t border-steel-blue/60 pt-3">
+                <span class="font-label-caps text-[11px] text-on-surface-variant uppercase block mb-2">Stage Latency Breakdown (ms)</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-data-mono text-xs">
+                    <div class="bg-deep-navy/40 border border-steel-blue/50 p-2.5 flex justify-between items-center">
+                        <span class="text-on-surface-variant">Ingestion:</span>
+                        <span id="timingIngestion" class="text-teal-accent">0.0 ms</span>
+                    </div>
+                    <div class="bg-deep-navy/40 border border-steel-blue/50 p-2.5 flex justify-between items-center">
+                        <span class="text-on-surface-variant">Inference:</span>
+                        <span id="timingInference" class="text-teal-accent">0.0 ms</span>
+                    </div>
+                    <div class="bg-deep-navy/40 border border-steel-blue/50 p-2.5 flex justify-between items-center">
+                        <span class="text-on-surface-variant">Geometry:</span>
+                        <span id="timingGeometry" class="text-teal-accent">0.0 ms</span>
+                    </div>
+                    <div class="bg-deep-navy/40 border border-steel-blue/50 p-2.5 flex justify-between items-center">
+                        <span class="text-on-surface-variant">Total Pipeline:</span>
+                        <span id="timingTotal" class="text-teal-accent">0.0 ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calibration & Geometry Summary -->
+            <div id="calibrationMetricsRow" class="border-t border-steel-blue/60 pt-3">
+                <span class="font-label-caps text-[11px] text-on-surface-variant uppercase block mb-2">Calibration & Scale Parameters</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-data-mono text-xs">
+                    <div class="bg-deep-navy/40 border border-steel-blue/50 p-2.5 flex justify-between items-center">
+                        <span class="text-on-surface-variant">Method:</span>
+                        <span id="calibMethod" class="text-on-surface">None</span>
+                    </div>
+                    <div class="bg-deep-navy/40 border border-steel-blue/50 p-2.5 flex justify-between items-center">
+                        <span class="text-on-surface-variant">Scale Factor:</span>
+                        <span id="calibScale" class="text-teal-accent">Unscaled</span>
+                    </div>
+                    <div class="bg-deep-navy/40 border border-steel-blue/50 p-2.5 flex justify-between items-center">
+                        <span class="text-on-surface-variant">Confidence:</span>
+                        <span id="calibConfidence" class="text-on-surface">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Asset Manifest & Download Suite -->
+        <div class="bg-royal-blue/70 backdrop-blur-xl border border-steel-blue p-container-padding flex flex-col gap-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-2 opacity-20 pointer-events-none">
+                <span class="material-symbols-outlined text-6xl text-teal-accent">archive</span>
+            </div>
+            <div>
+                <h2 class="font-label-caps text-label-caps text-teal-accent uppercase mb-1 border-b border-steel-blue pb-2 flex justify-between">
+                    <span>Generated Asset Manifest</span>
+                    <span id="manifestRequestId" class="text-on-surface-variant">REQ-ID</span>
+                </h2>
+                <p class="font-data-mono text-xs text-on-surface-variant uppercase mt-2">Dynamic computational & visual artifacts produced by pipeline</p>
+            </div>
+
+            <!-- Dynamic Artifact Items List -->
+            <div id="artifactList" class="flex flex-col gap-3">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Raw JSON Telemetry Terminal Container -->
+    <div class="w-full mb-8">
+        <div class="bg-royal-blue/70 backdrop-blur-xl border border-steel-blue p-container-padding flex flex-col gap-4">
+            <h2 class="font-label-caps text-label-caps text-teal-accent uppercase border-b border-steel-blue pb-2 flex justify-between items-center">
+                <span>Raw Response Payload</span>
+                <button id="toggleJsonBtn" class="text-xs font-data-mono text-teal-accent hover:underline cursor-pointer">Toggle View</button>
+            </h2>
+            <pre id="jsonOutput" class="bg-deep-navy/90 border border-steel-blue p-4 font-data-mono text-xs text-teal-accent overflow-x-auto max-h-96 whitespace-pre-wrap select-all leading-relaxed">Awaiting image submission...</pre>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    // Requirement 9: Centralized API Backend Configuration
+    const API_CONFIG = {
+        baseUrl: window.location.origin,
+        prefix: '/api/v1',
+        getProcessUrl() {
+            return `${this.baseUrl}${this.prefix}/depth/process`;
+        },
+        getHealthUrl() {
+            return `${this.baseUrl}${this.prefix}/health`;
+        },
+        getArtifactUrl(requestId, filename, forceDownload = false) {
+            const url = `${this.baseUrl}${this.prefix}/artifacts/${requestId}/${filename}`;
+            return forceDownload ? `${url}?download=true` : url;
+        }
+    };
+
+    // Supported File Extension Whitelist (Requirement 3)
+    const SUPPORTED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.geotiff', '.webp'];
+
+    // State Variables
+    let selectedFile = null;
+    let isProcessing = false;
+    let isBackendOnline = false;
+    let timerInterval = null;
+
+    // DOM References
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const processBtn = document.getElementById('processBtn');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const fileStatusText = document.getElementById('fileStatusText');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewContainer = document.getElementById('previewContainer');
+    const clearFileBtn = document.getElementById('clearFileBtn');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const loadingTimerText = document.getElementById('loadingTimerText');
+    const errorContainer = document.getElementById('errorContainer');
+    const errorTitle = document.getElementById('errorTitle');
+    const errorMessage = document.getElementById('errorMessage');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const toggleJsonBtn = document.getElementById('toggleJsonBtn');
+    
+    // Status Bar & Service Banner
+    const engineStatusBadge = document.getElementById('engineStatusBadge');
+    const statusIndicatorDot = document.getElementById('statusIndicatorDot');
+    const statusText = document.getElementById('statusText');
+    const serviceAlertBanner = document.getElementById('serviceAlertBanner');
+    const serviceAlertText = document.getElementById('serviceAlertText');
+    const retryHealthBtn = document.getElementById('retryHealthBtn');
+
+    // Results Panel Elements
+    const resultsPanel = document.getElementById('resultsPanel');
+    const hudStateBadge = document.getElementById('hudStateBadge');
+    const hudRequestId = document.getElementById('hudRequestId');
+    const previewStateLabel = document.getElementById('previewStateLabel');
+    const resultsInputPreview = document.getElementById('resultsInputPreview');
+    const resultsDepthPreview = document.getElementById('resultsDepthPreview');
+    const noDepthVisualFallback = document.getElementById('noDepthVisualFallback');
+    const inputImageFormat = document.getElementById('inputImageFormat');
+    const depthMapTypeBadge = document.getElementById('depthMapTypeBadge');
+
+    // Metrics Elements
+    const metricState = document.getElementById('metricState');
+    const metricModel = document.getElementById('metricModel');
+    const metricDevice = document.getElementById('metricDevice');
+    const metricTotalTime = document.getElementById('metricTotalTime');
+    const timingIngestion = document.getElementById('timingIngestion');
+    const timingInference = document.getElementById('timingInference');
+    const timingGeometry = document.getElementById('timingGeometry');
+    const timingTotal = document.getElementById('timingTotal');
+    const calibMethod = document.getElementById('calibMethod');
+    const calibScale = document.getElementById('calibScale');
+    const calibConfidence = document.getElementById('calibConfidence');
+    const manifestRequestId = document.getElementById('manifestRequestId');
+    const artifactList = document.getElementById('artifactList');
+
+    // Startup Health Check (Requirement 7)
+    checkBackendHealth();
+    retryHealthBtn.addEventListener('click', checkBackendHealth);
+
+    async function checkBackendHealth() {
+        statusText.textContent = 'CHECKING...';
+        statusIndicatorDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+        
+        try {
+            const res = await fetch(API_CONFIG.getHealthUrl(), { method: 'GET' });
+            if (res.ok) {
+                isBackendOnline = true;
+                statusText.textContent = 'ENGINE ONLINE';
+                statusIndicatorDot.className = 'w-2 h-2 rounded-full bg-teal-accent';
+                serviceAlertBanner.classList.add('hidden');
+                if (selectedFile) processBtn.disabled = false;
+            } else {
+                throw new Error(`Server returned HTTP ${res.status}`);
+            }
+        } catch (err) {
+            isBackendOnline = false;
+            statusText.textContent = 'ENGINE OFFLINE';
+            statusIndicatorDot.className = 'w-2 h-2 rounded-full bg-red-500';
+            serviceAlertText.textContent = `Backend server is unreachable at ${API_CONFIG.baseUrl}. Please verify FastAPI server is running.`;
+            serviceAlertBanner.classList.remove('hidden');
+            processBtn.disabled = true;
+        }
+    }
+
+    // Dropzone Event Handlers (Requirement 4: Double-submit & Processing Lock)
+    dropzone.addEventListener('click', () => {
+        if (!isProcessing) fileInput.click();
+    });
+
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!isProcessing) {
+            dropzone.classList.add('border-teal-accent', 'bg-royal-blue/90');
+        }
+    });
+
+    dropzone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-teal-accent', 'bg-royal-blue/90');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-teal-accent', 'bg-royal-blue/90');
+        if (isProcessing) return;
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    clearFileBtn.addEventListener('click', resetFileSelection);
+
+    function resetFileSelection() {
+        selectedFile = null;
+        fileInput.value = '';
+        previewContainer.classList.add('hidden');
+        processBtn.disabled = true;
+        hideError();
+    }
+
+    // Requirement 3: Client-Side File Format & Size Validation
+    function handleFileSelect(file) {
+        hideError();
+
+        // 1. Check for empty 0-byte file
+        if (!file || file.size === 0) {
+            showError('Invalid File Payload', 'The selected file is empty (0 bytes). Please choose a valid image.');
+            resetFileSelection();
+            return;
+        }
+
+        // 2. Validate File Extension
+        const fileName = file.name.toLowerCase();
+        const extMatch = fileName.substring(fileName.lastIndexOf('.'));
+        const isValid = SUPPORTED_EXTENSIONS.includes(extMatch);
+
+        if (!isValid) {
+            showError('Unsupported File Format', `"${file.name}" is not a supported image file. Supported formats: JPEG (.jpg, .jpeg), PNG (.png), TIFF (.tif, .tiff), GeoTIFF, and WebP (.webp).`);
+            resetFileSelection();
+            return;
+        }
+
+        selectedFile = file;
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+        fileNameDisplay.textContent = `${file.name} (${sizeMb} MB)`;
+        fileStatusText.textContent = 'Payload validated • Ready for execution';
+        fileStatusText.className = 'font-data-mono text-xs text-teal-accent uppercase';
+        previewContainer.classList.remove('hidden');
+
+        if (isBackendOnline) {
+            processBtn.disabled = false;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            resultsInputPreview.src = e.target.result;
+        };
+        reader.onerror = () => {
+            showError('File Read Error', 'Unable to read image contents into memory.');
+            resetFileSelection();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    toggleJsonBtn.addEventListener('click', () => {
+        jsonOutput.classList.toggle('hidden');
+    });
+
+    // Requirement 4 & 5: Processing Execution Lock & Live Progress Timer
+    processBtn.addEventListener('click', async () => {
+        if (!selectedFile || isProcessing) return;
+
+        if (!isBackendOnline) {
+            showError('Backend Offline', `Unable to send request. FastAPI backend at ${API_CONFIG.baseUrl} is unreachable.`);
+            return;
+        }
+
+        // Set Processing State Lock
+        isProcessing = true;
+        processBtn.disabled = true;
+        dropzone.classList.add('pointer-events-none', 'opacity-50');
+        clearFileBtn.classList.add('pointer-events-none', 'opacity-50');
+        hideError();
+        loadingIndicator.classList.remove('hidden');
+
+        // Start Live Processing Counter
+        let elapsedSeconds = 0;
+        loadingTimerText.textContent = `EXECUTING DEPTHANYTHING V2 & GEOMETRY ENGINE... (${elapsedSeconds}s)`;
+        timerInterval = setInterval(() => {
+            elapsedSeconds += 1;
+            loadingTimerText.textContent = `EXECUTING DEPTHANYTHING V2 & GEOMETRY ENGINE... (${elapsedSeconds}s)`;
+        }, 1000);
+
+        jsonOutput.textContent = `Submitting payload (${selectedFile.name}) to ${API_CONFIG.getProcessUrl()} ...`;
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        try {
+            const response = await fetch(API_CONFIG.getProcessUrl(), {
+                method: 'POST',
+                body: formData,
+            });
+
+            clearInterval(timerInterval);
+
+            // Requirement 2: User-friendly error messages on API failure
+            if (!response.ok) {
+                let serverDetail = '';
+                try {
+                    const errData = await response.json();
+                    serverDetail = errData.detail || JSON.stringify(errData);
+                } catch (e) {
+                    serverDetail = await response.text();
+                }
+
+                if (response.status === 400) {
+                    throw new Error(`Invalid Input (HTTP 400): ${serverDetail}`);
+                } else if (response.status === 413) {
+                    throw new Error(`Payload Too Large (HTTP 413): The image exceeds backend memory limits.`);
+                } else if (response.status === 500) {
+                    throw new Error(`Engine Error (HTTP 500): ${serverDetail || 'Internal pipeline processing failure.'}`);
+                } else {
+                    throw new Error(`HTTP Error ${response.status}: ${serverDetail || 'Request failed.'}`);
+                }
+            }
+
+            const data = await response.json();
+
+            // Requirement 6: Handle incomplete responses without crashing
+            jsonOutput.textContent = JSON.stringify(data, null, 2);
+            renderProcessingResults(data);
+
+        } catch (err) {
+            clearInterval(timerInterval);
+            let displayMsg = err.message || 'An unexpected processing error occurred.';
+            
+            // Catch Network Connection Refused Error (Requirement 7)
+            if (err.name === 'TypeError' && err.message.includes('fetch')) {
+                displayMsg = `Network Error: Unable to communicate with server at ${API_CONFIG.baseUrl}. Please verify the FastAPI uvicorn backend is running.`;
+                checkBackendHealth();
+            }
+
+            showError('Execution Failure', displayMsg);
+            jsonOutput.textContent = JSON.stringify({ error: displayMsg }, null, 2);
+        } finally {
+            clearInterval(timerInterval);
+            isProcessing = false;
+            loadingIndicator.classList.add('hidden');
+            dropzone.classList.remove('pointer-events-none', 'opacity-50');
+            clearFileBtn.classList.remove('pointer-events-none', 'opacity-50');
+            if (selectedFile && isBackendOnline) {
+                processBtn.disabled = false;
+            }
+        }
+    });
+
+    function showError(title, message) {
+        errorTitle.textContent = title;
+        errorMessage.textContent = message;
+        errorContainer.classList.remove('hidden');
+    }
+
+    function hideError() {
+        errorContainer.classList.add('hidden');
+    }
+
+    // Requirement 6: Safe Optional Chaining & Fallback Parsing
+    function renderProcessingResults(data) {
+        if (!data || typeof data !== 'object') {
+            showError('Invalid Response Data', 'Server returned empty or non-JSON output.');
+            return;
+        }
+
+        resultsPanel.classList.remove('hidden');
+
+        const stateStr = data?.state || 'STATE_A';
+        const reqId = data?.request_id || 'UNKNOWN-ID';
+
+        hudStateBadge.textContent = stateStr;
+        hudStateBadge.classList.remove('hidden');
+        hudRequestId.textContent = reqId;
+        hudRequestId.classList.remove('hidden');
+        previewStateLabel.textContent = `${stateStr} OUTPUT`;
+        manifestRequestId.textContent = reqId;
+
+        if (data?.metadata) {
+            const w = data.metadata.width || '?';
+            const h = data.metadata.height || '?';
+            const fmt = data.metadata.format || 'RAW';
+            inputImageFormat.textContent = `${w}x${h} PX • ${fmt}`;
+        }
+
+        metricState.textContent = stateStr;
+        metricModel.textContent = data?.model_name || 'DepthAnything V2';
+        metricDevice.textContent = (data?.device_used || 'CPU').toUpperCase();
+        metricTotalTime.textContent = `${(data?.total_time_ms || 0).toFixed(1)} ms`;
+
+        const timings = data?.timings_ms || {};
+        timingIngestion.textContent = `${(timings.ingestion_ms || 0).toFixed(1)} ms`;
+        timingInference.textContent = `${(timings.depth_inference_ms || 0).toFixed(1)} ms`;
+        timingGeometry.textContent = `${(timings.geometry_ms || 0).toFixed(1)} ms`;
+        timingTotal.textContent = `${(data?.total_time_ms || 0).toFixed(1)} ms`;
+
+        if (data?.calibration) {
+            calibMethod.textContent = data.calibration.method || 'none';
+            calibScale.textContent = data.calibration.scale_factor ? data.calibration.scale_factor.toFixed(6) : 'Unscaled';
+            calibConfidence.textContent = `${Math.round((data.calibration.confidence || 0) * 100)}%`;
+        } else {
+            calibMethod.textContent = 'none';
+            calibScale.textContent = 'Unscaled';
+            calibConfidence.textContent = '0%';
+        }
+
+        // Requirement 1: Handle every artifact URL correctly
+        const artifactsMap = data?.artifacts || {};
+        const artifactsList = Object.values(artifactsMap);
+
+        let visualArtifact = artifactsList.find(a => a?.is_visualization || (a?.filename && a.filename.endsWith('.png')));
+        
+        if (visualArtifact && reqId) {
+            // Requirement 1 & 9: Use API_CONFIG for artifact URL
+            const visualUrl = visualArtifact.download_url || API_CONFIG.getArtifactUrl(reqId, visualArtifact.filename);
+            resultsDepthPreview.src = visualUrl;
+            resultsDepthPreview.classList.remove('hidden');
+            noDepthVisualFallback.classList.add('hidden');
+            depthMapTypeBadge.textContent = (visualArtifact.name || 'TURBO COLORMAP').toUpperCase();
+        } else {
+            resultsDepthPreview.classList.add('hidden');
+            noDepthVisualFallback.classList.remove('hidden');
+        }
+
+        renderAssetManifest(reqId, artifactsList);
+    }
+
+    function renderAssetManifest(requestId, artifacts) {
+        artifactList.innerHTML = '';
+
+        if (!artifacts || artifacts.length === 0) {
+            artifactList.innerHTML = '<p class="font-data-mono text-xs text-on-surface-variant p-4">No output artifacts reported for this request.</p>';
+            return;
+        }
+
+        artifacts.forEach(art => {
+            if (!art || !art.filename) return;
+
+            const ext = (art.filename || '').split('.').pop().toUpperCase();
+            
+            let icon = 'description';
+            if (['PNG', 'JPG', 'JPEG', 'WEBP'].includes(ext)) {
+                icon = 'image';
+            } else if (ext === 'NPY') {
+                icon = 'grid_4x4';
+            } else if (['TIF', 'TIFF'].includes(ext)) {
+                icon = 'map';
+            } else if (['PLY', 'JSON', 'OBJ'].includes(ext)) {
+                icon = '3d_rotation';
+            }
+
+            const sizeBytes = art.size_bytes || 0;
+            const sizeStr = sizeBytes > 1048576 
+                ? (sizeBytes / 1048576).toFixed(2) + ' MB'
+                : (sizeBytes / 1024).toFixed(1) + ' KB';
+
+            // Requirement 1 & 9: Use backend download_url if present, else API_CONFIG helper
+            const downloadUrl = art.download_url 
+                ? `${API_CONFIG.baseUrl}${art.download_url}`
+                : API_CONFIG.getArtifactUrl(requestId, art.filename, true);
+
+            const itemHtml = `
+                <div class="bg-deep-navy/50 border border-steel-blue p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-teal-accent/50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-royal-blue border border-steel-blue flex items-center justify-center text-teal-accent shrink-0">
+                            <span class="material-symbols-outlined text-2xl">${icon}</span>
+                        </div>
+                        <div>
+                            <h3 class="font-headline-md text-xl uppercase text-on-surface m-0 leading-none">${art.name || art.filename}</h3>
+                            <p class="font-data-mono text-xs text-on-surface-variant uppercase mt-1">${art.artifact_type || 'Artifact'} &bull; ${art.filename}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 w-full md:w-auto justify-end shrink-0">
+                        <span class="font-label-caps bg-royal-blue px-3 py-1 text-teal-accent border border-steel-blue">.${ext}</span>
+                        <span class="font-data-mono text-xs text-on-surface-variant w-20 text-right">${sizeStr}</span>
+                        <a href="${downloadUrl}" download="${art.filename}" target="_blank" class="ml-auto md:ml-0 bg-transparent text-teal-accent font-label-caps uppercase py-2 px-6 border border-teal-accent hover:bg-teal-accent hover:text-deep-navy transition-colors flex items-center gap-2 text-decoration-none">
+                            <span class="material-symbols-outlined text-[16px]">download</span>
+                            Download
+                        </a>
+                    </div>
+                </div>
+            `;
+            artifactList.insertAdjacentHTML('beforeend', itemHtml);
+        });
+    }
+</script>
+</body>
+</html>
